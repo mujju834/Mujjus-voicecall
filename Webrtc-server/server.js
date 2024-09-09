@@ -8,10 +8,11 @@ const server = http.createServer(app);
 
 // Allow CORS from Vite frontend
 app.use(cors({
-  origin: "http://localhost:5173", // Frontend URL
+  origin: "*", // Allows requests from any domain
   methods: ["GET", "POST"],
   credentials: true,
 }));
+
 
 // Store user emails and their associated socket IDs
 const users = new Map();
@@ -20,7 +21,7 @@ const socketToEmail = new Map(); // Map for tracking socket to email
 // Initialize Socket.IO server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Frontend URL
+  origin: "*", // Allows requests from any domain
     methods: ["GET", "POST"],
     credentials: true,
   },
