@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
 
   // Root GET method
 app.get('/', (req, res) => {
-  res.send('Welcome to Mujju\'s Voice Call App');
+  res.send('Welcome to Mujju\'s Voice Call App with webrtc');
 });
 
 
