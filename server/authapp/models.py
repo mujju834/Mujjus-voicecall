@@ -1,6 +1,7 @@
 
 # Create your models here.
-from djongo import models
+from django.db import models
+
 from bcrypt import hashpw, gensalt, checkpw
 
 class User(models.Model):
