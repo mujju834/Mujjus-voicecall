@@ -5,6 +5,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
+
+def homepage(request):
+    return HttpResponse("Welcome to Mujju's voice call app")
 
 @api_view(['POST'])
 def register(request):

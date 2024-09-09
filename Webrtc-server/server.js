@@ -15,6 +15,7 @@ app.use(cors({
 
 // Store user emails and their associated socket IDs
 const users = new Map();
+const socketToEmail = new Map(); // Map for tracking socket to email
 
 // Initialize Socket.IO server
 const io = new Server(server, {
@@ -30,24 +31,24 @@ io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
   // Handle user registration and update the socket ID for the same user
-socket.on('register-user', (email) => {
-  users.set(email, socket.id);  // Overwrites the previous socket ID
-  console.log(`Registered ${email} with socket ID ${socket.id}`);
-});
+  socket.on('register-user', (email) => {
+    users.set(email, socket.id);  // Overwrites the previous socket ID
+    socketToEmail.set(socket.id, email);  // Track socket by email
+    console.log(`Registered ${email} with socket ID ${socket.id}`);
+  });
 
-// Handle calling functionality (no change needed here)
-socket.on('call-user', (data) => {
-  const { userToCall, offer, from } = data;
-  const toSocketId = users.get(userToCall);  // Get the latest socket ID of the user to be called
+  // Handle calling functionality
+  socket.on('call-user', (data) => {
+    const { userToCall, offer, from } = data;
+    const toSocketId = users.get(userToCall);  // Get the latest socket ID of the user to be called
 
-  if (toSocketId) {
-    console.log(`Calling user ${userToCall} from ${from}`);
-    io.to(toSocketId).emit('call-made', { offer, from });
-  } else {
-    console.error(`No socket ID found for user ${userToCall}`);
-  }
-});
-
+    if (toSocketId) {
+      console.log(`Calling user ${userToCall} from ${from}`);
+      io.to(toSocketId).emit('call-made', { offer, from });
+    } else {
+      console.error(`No socket ID found for user ${userToCall}`);
+    }
+  });
 
   // Handle answer call functionality
   socket.on('answer-call', (data) => {
@@ -62,12 +63,28 @@ socket.on('call-user', (data) => {
     }
   });
 
-  // Handle user disconnect
+  socket.on('cancel-call', (data) => {
+    const { to } = data;
+    const toSocketId = users.get(to);
+    if (toSocketId) {
+      io.to(toSocketId).emit('call-cancelled');
+      console.log(`Call cancelled by ${data.from}`);
+    }
+  });
+  
+
+  // Handle user disconnect and remove socket ID
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-    // Optionally remove the user from the map if needed
+    const email = socketToEmail.get(socket.id);
+    if (email) {
+      console.log(`User with email ${email} disconnected.`);
+      socketToEmail.delete(socket.id);
+      users.delete(email);  // Remove the user from the map when disconnected
+    }
   });
 });
+
+
 
 // Listen on port 5000
 server.listen(5000, () => {
